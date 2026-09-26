@@ -41,7 +41,7 @@ jupyter notebook knapsack_project.ipynb
 
 ## Reporting
 
-- **Live dashboard:** [fryzim.github.io/benchmarking_knapsack01](https://fryzim.github.io/benchmarking_knapsack01/) — interactive time/quality-vs-size charts and greedy gap-to-optimum by correlation type, built from `benchmark_results.csv` (source in `docs/index.html`).
+- **Interactive web dashboard:** [fryzim.github.io/benchmarking_knapsack01](https://fryzim.github.io/benchmarking_knapsack01/) — an HTML/Chart.js page (not a Power BI report): time/quality-vs-size charts and greedy gap-to-optimum by correlation type, built from `benchmark_results.csv` (source in `docs/index.html`).
 - **Power Query:** `reporting/power_query.m` — loads and types `benchmark_results.csv` for Power BI/Excel, adds algorithm-family and relative-quality columns.
 
 ## Project structure
