@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Knapsack 0/1 — Reporting</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    color-scheme: light;
+    --surface-1: #fcfcfb;
+    --page: #f9f9f7;
+    --text-primary: #0b0b0b;
+    --text-secondary: #52514e;
+    --muted: #898781;
+    --grid: #e1e0d9;
+    --baseline: #c3c2b7;
+    --border: rgba(11,11,11,0.10);
+    --card-bg: #ffffff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) {
+      color-scheme: dark;
+      --surface-1: #1a1a19;
+      --page: #0d0d0d;
+      --text-primary: #ffffff;
+      --text-secondary: #c3c2b7;
+      --muted: #898781;
+      --grid: #2c2c2a;
+      --baseline: #383835;
+      --border: rgba(255,255,255,0.10);
+      --card-bg: #201f1d;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --surface-1: #1a1a19;
+    --page: #0d0d0d;
+    --text-primary: #ffffff;
+    --text-secondary: #c3c2b7;
+    --muted: #898781;
+    --grid: #2c2c2a;
+    --baseline: #383835;
+    --border: rgba(255,255,255,0.10);
+    --card-bg: #201f1d;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: var(--page);
+    color: var(--text-primary);
+  }
+  header {
+    padding: 28px 24px 8px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  header h1 { font-size: 1.5rem; margin: 0 0 4px; }
+  header p { color: var(--text-secondary); margin: 0 0 16px; max-width: 70ch; }
+  .theme-toggle {
+    position: absolute; top: 24px; right: 24px;
+    border: 1px solid var(--border); background: var(--card-bg); color: var(--text-primary);
+    border-radius: 8px; padding: 6px 12px; cursor: pointer; font-size: 0.85rem;
+  }
+  main { max-width: 1100px; margin: 0 auto; padding: 0 24px 60px; }
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px,1fr)); gap: 12px; margin-bottom: 24px; }
+  .kpi { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+  .kpi .value { font-size: 1.6rem; font-weight: 600; }
+  .kpi .label { color: var(--text-secondary); font-size: 0.8rem; }
+  section { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+  section h2 { font-size: 1.05rem; margin: 0 0 4px; }
+  section .sub { color: var(--text-secondary); font-size: 0.85rem; margin: 0 0 14px; }
+  .chart-wrap { position: relative; height: 340px; }
+  .controls { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-bottom: 14px; font-size: 0.8rem; }
+  .controls label { display: flex; align-items: center; gap: 5px; color: var(--text-secondary); cursor: pointer; }
+  .controls input[type=checkbox] { accent-color: #2a78d6; }
+  .controls label.disabled { opacity: 0.35; cursor: not-allowed; }
+  .hint { font-size: 0.75rem; color: var(--muted); margin-top: 8px; }
+  .gap-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px,1fr)); gap: 18px; }
+  .gap-panel h3 { font-size: 0.85rem; margin: 0 0 8px; color: var(--text-secondary); }
+  table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+  th, td { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--grid); }
+  th { color: var(--text-secondary); font-weight: 600; }
+  details summary { cursor: pointer; color: var(--text-secondary); font-size: 0.85rem; margin-top: 10px; }
+  footer { max-width: 1100px; margin: 0 auto; padding: 10px 24px 40px; color: var(--muted); font-size: 0.8rem; }
+  footer a { color: inherit; }
+</style>
+</head>
+<body>
+<button class="theme-toggle" id="themeToggle">🌓 Thème</button>
+<header>
+  <h1>Knapsack 0/1 — Reporting</h1>
+  <p>Résultats agrégés des 16 algorithmes benchmarkés sur 44 instances (n = 4 à 10,000). Données issues de <code>benchmark_results.csv</code> — voir le <a href="https://github.com/Fryzim/benchmarking_knapsack01">notebook et le code source</a>.</p>
+</header>
+<main>
+  <div class="kpis">
+    <div class="kpi"><div class="value">1,197</div><div class="label">exécutions</div></div>
+    <div class="kpi"><div class="value">16</div><div class="label">algorithmes</div></div>
+    <div class="kpi"><div class="value">44</div><div class="label">instances testées</div></div>
+    <div class="kpi"><div class="value">10,000</div><div class="label">taille max (n)</div></div>
+    <div class="kpi"><div class="value">272 ms</div><div class="label">temps moyen / run</div></div>
+  </div>
+
+  <section>
+    <h2>Temps d'exécution vs taille du problème</h2>
+    <p class="sub">Échelle log-log. Jusqu'à 8 algorithmes affichés simultanément (contrainte de palette accessible).</p>
+    <div class="controls" id="controlsTime"></div>
+    <div class="chart-wrap"><canvas id="chartTime"></canvas></div>
+    <details><summary>Voir les données en table</summary><div id="tableTime"></div></details>
+  </section>
+
+  <section>
+    <h2>Qualité relative vs taille du problème</h2>
+    <p class="sub">Valeur obtenue / meilleure valeur trouvée pour cette taille (%). Mêmes séries que le graphique précédent.</p>
+    <div class="chart-wrap"><canvas id="chartQuality"></canvas></div>
+    <details><summary>Voir les données en table</summary><div id="tableQuality"></div></details>
+  </section>
+
+  <section>
+    <h2>Écart à l'optimum des heuristiques greedy, par type de corrélation</h2>
+    <p class="sub">Écart moyen (%) par rapport à la solution exacte (Dynamic Programming), sur les instances générées. Barres classées par magnitude (encodage séquentiel, une seule teinte).</p>
+    <div class="gap-grid" id="gapGrid"></div>
+  </section>
+</main>
+<footer>Généré à partir de <code>benchmark_results.csv</code> — <a href="https://github.com/Fryzim/benchmarking_knapsack01">retour au dépôt</a>.</footer>
+
+<script>
+const DATA = {"series": {"Brute Force": {"n": [4, 5, 7, 10, 20, 23], "time_ms": [0.0, 0.0, 0.0, 1.252, 741.01, 6355.499], "rel_quality": [76.54, 94.38, 99.49, 55.57, 98.8, 97.67]}, "Dynamic Programming": {"n": [4, 5, 7, 10, 20, 23, 100, 200, 500, 1000, 2000, 5000], "time_ms": [0.0, 0.0, 0.0, 0.0, 2.499, 34.26, 8.031, 16.353, 59.986, 275.664, 178.079, 449.314], "rel_quality": [76.54, 94.38, 99.49, 55.57, 98.8, 97.67, 38.53, 42.23, 29.33, 28.16, 13.74, 8.74]}, "DP Top-Down": {"n": [4, 5, 7, 10, 20, 23, 100, 200, 500, 1000, 2000, 5000], "time_ms": [0.0, 0.0, 1.003, 0.0, 1.753, 2.511, 18.331, 49.177, 259.291, 1079.894, 939.017, 2558.145], "rel_quality": [76.54, 94.38, 99.49, 55.57, 98.8, 97.67, 38.53, 42.23, 29.33, 28.16, 13.74, 8.74]}, "Branch and Bound": {"n": [4, 5, 7, 10, 20, 23, 100, 200, 500], "time_ms": [0.0, 0.0, 0.0, 0.255, 0.0, 1111.192, 0.752, 9.491, 90.384], "rel_quality": [75.22, 94.38, 94.84, 55.41, 98.8, 97.67, 38.53, 42.22, 29.32]}, "Greedy Ratio": {"n": [4, 5, 7, 10, 20, 23, 100, 200, 500, 1000, 2000, 5000, 10000], "time_ms": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.111, 0.376, 0.751, 1.445, 3.004], "rel_quality": [67.3, 94.38, 94.84, 55.41, 98.22, 97.51, 37.92, 41.98, 29.23, 28.08, 22.14, 21.63, 26.78]}, "Greedy Value": {"n": [4, 5, 7, 10, 20, 23, 100, 200, 500, 1000, 2000, 5000, 10000], "time_ms": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.056, 0.111, 0.167, 0.209, 0.945, 1.725], "rel_quality": [67.3, 94.38, 99.49, 53.01, 98.8, 97.65, 20.0, 15.56, 9.87, 8.0, 5.16, 4.93, 6.54]}, "Greedy Weight": {"n": [4, 5, 7, 10, 20, 23, 100, 200, 500, 1000, 2000, 5000, 10000], "time_ms": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.072, 0.0, 0.0, 0.251, 0.25, 0.722, 19.84], "rel_quality": [67.3, 94.38, 73.45, 42.28, 91.57, 95.54, 32.63, 37.31, 24.68, 24.84, 18.91, 18.86, 23.48]}, "Fractional Knapsack": {"n": [4, 5, 7, 10, 20, 23, 100, 200, 500, 1000, 2000, 5000, 10000], "time_ms": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.048, 0.111, 0.167, 0.083, 0.249, 0.835, 2.088], "rel_quality": [84.31, 100.0, 100.0, 58.73, 99.93, 100.0, 39.27, 42.7, 29.47, 28.21, 22.2, 21.64, 26.79]}, "Randomized": {"n": [4, 5, 7, 10, 20, 23, 100, 200, 500, 1000, 2000, 5000, 10000], "time_ms": [0.0, 0.0, 0.0, 0.251, 1.001, 0.998, 1.062, 2.504, 7.574, 14.867, 29.945, 78.842, 171.804], "rel_quality": [76.54, 94.38, 99.49, 55.41, 98.8, 97.45, 26.79, 22.76, 12.27, 9.23, 5.85, 4.61, 5.55]}, "Genetic Algorithm": {"n": [4, 5, 7, 10, 20, 23, 100, 200, 500, 1000, 2000, 5000, 10000], "time_ms": [11.264, 11.508, 12.014, 13.513, 17.692, 19.019, 52.181, 96.897, 242.796, 492.976, 998.051, 2579.703, 5052.508], "rel_quality": [76.54, 94.38, 99.49, 55.57, 98.8, 97.67, 38.1, 40.61, 27.38, 25.83, 20.05, 19.09, 23.37]}, "Genetic Adaptive": {"n": [4, 5, 7, 10, 20, 23, 100, 200, 500, 1000, 2000, 5000, 10000], "time_ms": [2.999, 2.51, 3.508, 3.5, 5.254, 6.509, 33.283, 96.31, 241.332, 477.994, 912.235, 2345.107, 4552.678], "rel_quality": [76.54, 94.38, 99.49, 55.57, 98.8, 97.67, 38.26, 41.12, 27.57, 25.87, 20.21, 19.16, 23.54]}, "Simulated Annealing": {"n": [4, 5, 7, 10, 20, 23, 100, 200, 500, 1000, 2000, 5000, 10000], "time_ms": [1.752, 2.0, 2.006, 2.0, 2.509, 2.507, 8.834, 17.168, 44.623, 93.326, 194.073, 514.146, 959.748], "rel_quality": [76.54, 94.38, 99.49, 55.57, 98.22, 97.51, 38.0, 41.98, 29.23, 28.08, 22.14, 21.63, 26.78]}, "SA Adaptive": {"n": [4, 5, 7, 10, 20, 23, 100, 200, 500, 1000, 2000, 5000, 10000], "time_ms": [0.502, 0.0, 0.0, 1.002, 1.001, 1.997, 9.133, 17.482, 81.955, 167.855, 1173.661, 3059.38, 5906.49], "rel_quality": [76.54, 94.38, 99.49, 55.57, 98.22, 97.51, 37.94, 42.0, 29.23, 28.08, 22.14, 21.63, 26.78]}, "FPTAS (\u03b5=0.1)": {"n": [4, 5, 7, 10, 20, 23, 100], "time_ms": [0.0, 1.0, 0.0, 0.0, 2.751, 2.001, 133.683], "rel_quality": [76.54, 94.38, 99.49, 55.57, 98.8, 97.54, 38.53]}, "FPTAS (\u03b5=0.05)": {"n": [4, 5, 7, 10, 20, 23, 100], "time_ms": [0.0, 0.0, 0.0, 0.0, 3.754, 5.506, 263.457], "rel_quality": [76.54, 94.38, 99.49, 55.57, 98.8, 97.65, 38.53]}, "FPTAS Adaptive": {"n": [4, 5, 7, 10, 20, 23, 100, 200], "time_ms": [0.0, 0.0, 0.0, 0.501, 3.756, 4.999, 133.966, 510.054], "rel_quality": [76.54, 94.38, 99.49, 55.57, 98.8, 97.65, 38.53, 42.23]}}, "gap_data": {"strongly_correlated": [{"algorithm": "Fractional Knapsack", "gap_pct": -1.81}, {"algorithm": "Greedy Ratio", "gap_pct": 0.94}, {"algorithm": "Greedy Weight", "gap_pct": 0.94}, {"algorithm": "Greedy Value", "gap_pct": 64.19}], "uncorrelated": [{"algorithm": "Fractional Knapsack", "gap_pct": -3.87}, {"algorithm": "Greedy Ratio", "gap_pct": -2.26}, {"algorithm": "Greedy Weight", "gap_pct": 13.66}, {"algorithm": "Greedy Value", "gap_pct": 63.2}], "weakly_correlated": [{"algorithm": "Fractional Knapsack", "gap_pct": -1.74}, {"algorithm": "Greedy Ratio", "gap_pct": 0.3}, {"algorithm": "Greedy Weight", "gap_pct": 40.43}, {"algorithm": "Greedy Value", "gap_pct": 43.12}]}, "kpis": {"total_runs": 1197, "n_algorithms": 16, "n_instances": 44, "max_n": 10000, "avg_time_ms": 271.762}};
+const ALGO_META = {"Dynamic Programming": {"slot": 1, "family": "Exact"}, "Branch and Bound": {"slot": 8, "family": "Exact"}, "Brute Force": {"slot": null, "family": "Exact"}, "DP Top-Down": {"slot": null, "family": "Exact"}, "Greedy Ratio": {"slot": 2, "family": "Greedy"}, "Greedy Value": {"slot": null, "family": "Greedy"}, "Greedy Weight": {"slot": null, "family": "Greedy"}, "Fractional Knapsack": {"slot": null, "family": "Greedy"}, "Genetic Adaptive": {"slot": 3, "family": "Metaheuristic"}, "Simulated Annealing": {"slot": 6, "family": "Metaheuristic"}, "Genetic Algorithm": {"slot": null, "family": "Metaheuristic"}, "SA Adaptive": {"slot": null, "family": "Metaheuristic"}, "Randomized": {"slot": null, "family": "Metaheuristic"}, "FPTAS Adaptive": {"slot": 7, "family": "Approximation"}, "FPTAS (\u03b5=0.1)": {"slot": null, "family": "Approximation"}, "FPTAS (\u03b5=0.05)": {"slot": null, "family": "Approximation"}};
+const SLOT_LIGHT = {"1": "#2a78d6", "2": "#eb6834", "3": "#1baf7a", "4": "#eda100", "5": "#e87ba4", "6": "#008300", "7": "#4a3aa7", "8": "#e34948"};
+const SLOT_DARK = {"1": "#3987e5", "2": "#d95926", "3": "#199e70", "4": "#c98500", "5": "#d55181", "6": "#008300", "7": "#9085e9", "8": "#e66767"};
+const FREE_SLOTS = [4, 5];
+const MAX_SERIES = 8;
+
+function isDark() {
+  const t = document.documentElement.getAttribute('data-theme');
+  if (t === 'dark') return true;
+  if (t === 'light') return false;
+  return window.matchMedia('(prefers-color-scheme: dark)').matches;
+}
+function ink() { return isDark() ? '#ffffff' : '#0b0b0b'; }
+function inkSecondary() { return isDark() ? '#c3c2b7' : '#52514e'; }
+function gridColor() { return isDark() ? '#2c2c2a' : '#e1e0d9'; }
+function colorFor(algo) {
+  const slots = isDark() ? SLOT_DARK : SLOT_LIGHT;
+  return slots[ALGO_META[algo].slot];
+}
+
+// ---- Series selection state ----
+const allAlgos = Object.keys(DATA.series);
+const defaultOn = allAlgos.filter(a => ALGO_META[a].slot && !FREE_SLOTS.includes(ALGO_META[a].slot));
+let selected = new Set(defaultOn);
+let nextFreeSlotIdx = 0;
+
+function assignFreeSlot(algo) {
+  if (ALGO_META[algo].slot) return ALGO_META[algo].slot;
+  const slot = FREE_SLOTS[nextFreeSlotIdx % FREE_SLOTS.length];
+  nextFreeSlotIdx++;
+  ALGO_META[algo].slot = slot;
+  return slot;
+}
+
+function buildControls() {
+  const el = document.getElementById('controlsTime');
+  el.innerHTML = '';
+  allAlgos.forEach(algo => {
+    const id = 'chk_' + algo.replace(/[^a-zA-Z0-9]/g, '_');
+    const label = document.createElement('label');
+    label.innerHTML = `<input type="checkbox" id="${id}" ${selected.has(algo) ? 'checked' : ''}/> ${algo}`;
+    el.appendChild(label);
+    label.querySelector('input').addEventListener('change', (e) => {
+      if (e.target.checked) {
+        if (selected.size >= MAX_SERIES) { e.target.checked = false; return; }
+        selected.add(algo);
+        assignFreeSlot(algo);
+      } else {
+        selected.delete(algo);
+      }
+      renderAll();
+    });
+  });
+  const hint = document.createElement('div');
+  hint.className = 'hint';
+  hint.textContent = `${selected.size}/${MAX_SERIES} algorithmes affichés.`;
+  el.appendChild(hint);
+}
+
+let chartTime, chartQuality;
+
+function datasetsFor(metricKey) {
+  return [...selected].map(algo => ({
+    label: algo,
+    data: DATA.series[algo].n.map((n, i) => ({ x: n, y: DATA.series[algo][metricKey][i] })),
+    borderColor: colorFor(algo),
+    backgroundColor: colorFor(algo),
+    borderWidth: 2,
+    pointRadius: 3,
+    pointHoverRadius: 5,
+    tension: 0,
+  }));
+}
+
+function baseOptions(yLabel, yType) {
+  return {
+    responsive: true, maintainAspectRatio: false,
+    interaction: { mode: 'nearest', intersect: false },
+    plugins: {
+      legend: { position: 'bottom', labels: { color: ink(), boxWidth: 12, font: { size: 11 } } },
+      tooltip: {
+        backgroundColor: isDark() ? '#201f1d' : '#ffffff',
+        titleColor: ink(), bodyColor: inkSecondary(),
+        borderColor: gridColor(), borderWidth: 1,
+      },
+    },
+    scales: {
+      x: { type: 'logarithmic', title: { display: true, text: 'Taille du problème (n)', color: inkSecondary() },
+            ticks: { color: inkSecondary() }, grid: { color: gridColor() } },
+      y: { type: yType, title: { display: true, text: yLabel, color: inkSecondary() },
+            ticks: { color: inkSecondary() }, grid: { color: gridColor() } },
+    },
+  };
+}
+
+function renderTable(containerId, metricKey, unit) {
+  const rows = [...selected].map(algo => {
+    const s = DATA.series[algo];
+    const last = s.n.length - 1;
+    return `<tr><td>${algo}</td><td>${s.n[0]}</td><td>${s[metricKey][0]}${unit}</td><td>${s.n[last]}</td><td>${s[metricKey][last]}${unit}</td></tr>`;
+  }).join('');
+  document.getElementById(containerId).innerHTML =
+    `<table><thead><tr><th>Algorithme</th><th>n min</th><th>Valeur (n min)</th><th>n max</th><th>Valeur (n max)</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+function renderGapPanels() {
+  const grid = document.getElementById('gapGrid');
+  grid.innerHTML = '';
+  const order = ['uncorrelated', 'weakly_correlated', 'strongly_correlated'];
+  const titles = {uncorrelated: 'Uncorrelated', weakly_correlated: 'Weakly correlated', strongly_correlated: 'Strongly correlated'};
+  order.forEach(corr => {
+    if (!DATA.gap_data[corr]) return;
+    const panel = document.createElement('div');
+    panel.className = 'gap-panel';
+    const canvasId = 'gap_' + corr;
+    panel.innerHTML = `<h3>${titles[corr]}</h3><div class="chart-wrap" style="height:220px"><canvas id="${canvasId}"></canvas></div>`;
+    grid.appendChild(panel);
+    const rows = DATA.gap_data[corr];
+    new Chart(document.getElementById(canvasId), {
+      type: 'bar',
+      data: {
+        labels: rows.map(r => r.algorithm),
+        datasets: [{
+          data: rows.map(r => r.gap_pct),
+          backgroundColor: '#2a78d6',
+          borderRadius: 4,
+        }],
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false },
+          tooltip: { callbacks: { label: (ctx) => `Écart : ${ctx.parsed.x}%` } } },
+        scales: {
+          x: { min: 0, title: { display: true, text: 'Écart moyen à l\'optimum (%)', color: inkSecondary() },
+                ticks: { color: inkSecondary() }, grid: { color: gridColor() } },
+          y: { ticks: { color: ink(), font: { size: 11 } }, grid: { display: false } },
+        },
+      },
+    });
+  });
+}
+
+function renderAll() {
+  buildControls();
+  if (chartTime) chartTime.destroy();
+  if (chartQuality) chartQuality.destroy();
+  chartTime = new Chart(document.getElementById('chartTime'), {
+    type: 'line',
+    data: { datasets: datasetsFor('time_ms') },
+    options: { ...baseOptions('Temps moyen (ms)', 'logarithmic') },
+  });
+  chartQuality = new Chart(document.getElementById('chartQuality'), {
+    type: 'line',
+    data: { datasets: datasetsFor('rel_quality') },
+    options: { ...baseOptions('Qualité relative (%)', 'linear') },
+  });
+  renderTable('tableTime', 'time_ms', ' ms');
+  renderTable('tableQuality', 'rel_quality', ' %');
+}
+
+document.getElementById('themeToggle').addEventListener('click', () => {
+  const cur = document.documentElement.getAttribute('data-theme');
+  const next = cur === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  renderAll();
+  renderGapPanels();
+});
+
+renderAll();
+renderGapPanels();
+</script>
+</body>
+</html>

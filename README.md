@@ -7,7 +7,7 @@ Comparative study of 16 algorithms for the 0/1 Knapsack problem, built to answer
 ## What's in it
 
 - 16 algorithms implemented from scratch (no solver libraries): exact (brute force, DP, DP top-down, branch & bound), approximation (FPTAS, 2 variants), greedy heuristics (4 sorting criteria), and metaheuristics (genetic algorithm, simulated annealing, adaptive variants, randomized greedy)
-- 1029 benchmark runs across 100+ instances, 13 sizes (n = 4 to 10,000), 4 correlation structures (uncorrelated, strongly/weakly correlated, similar weights) to stress different algorithm weaknesses
+- 1197 benchmark runs across 100+ instances, 13 sizes (n = 4 to 10,000), 4 correlation structures (uncorrelated, strongly/weakly correlated, similar weights) to stress different algorithm weaknesses
 - Statistical analysis: optimality rate, practicability limits, per-correlation-type performance, and a decision tree summarizing which algorithm to use in which context
 - Reproducible: fixed seeds throughout, benchmark instances included in `benchmarks/`
 
@@ -27,7 +27,7 @@ Full decision tree and per-algorithm tables are in the notebook and below.
 ```bash
 pip install -r requirements.txt
 
-# Full re-run (regenerates instances + all 1029 benchmarks, ~30-60 min):
+# Full re-run (regenerates instances + all 1197 benchmarks, ~30-60 min):
 python run_benchmarks.py --generate
 
 # Or just re-run against the benchmark instances already committed in benchmarks/:
@@ -38,6 +38,11 @@ jupyter notebook knapsack_project.ipynb
 ```
 
 `benchmark_results.csv` is already committed, so the notebook works out of the box without re-running anything.
+
+## Reporting
+
+- **Live dashboard:** [fryzim.github.io/benchmarking_knapsack01](https://fryzim.github.io/benchmarking_knapsack01/) — interactive time/quality-vs-size charts and greedy gap-to-optimum by correlation type, built from `benchmark_results.csv` (source in `docs/index.html`).
+- **Power Query:** `reporting/power_query.m` — loads and types `benchmark_results.csv` for Power BI/Excel, adds algorithm-family and relative-quality columns.
 
 ## Project structure
 
@@ -57,11 +62,13 @@ src/
   hyperparameters.py        exploratory hyperparameter-sensitivity helpers (see Known Issues)
 run_benchmarks.py          CLI: (optionally) regenerate instances, run all benchmarks, save CSV
 knapsack_project.ipynb     demo + analysis notebook (imports from src/, no algorithm code)
+docs/index.html            live reporting dashboard (GitHub Pages)
+reporting/power_query.m    Power Query (M) script for Power BI / Excel
 benchmarks/
   generated/                instances generated for this study
   large_scale/, low_dimension/   standard reference instances
   *_optimum/                     known optimal solutions for the above
-benchmark_results.csv       raw results of all 1029 runs
+benchmark_results.csv       raw results of all 1197 runs
 ```
 
 ## Algorithms
