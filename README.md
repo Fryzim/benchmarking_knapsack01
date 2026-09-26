@@ -25,16 +25,38 @@ Full decision tree and per-algorithm tables are in the notebook and below.
 ## Reproducing results
 
 ```bash
-pip install numpy pandas scipy matplotlib seaborn scikit-learn jupyter
+pip install -r requirements.txt
+
+# Full re-run (regenerates instances + all 1029 benchmarks, ~30-60 min):
+python run_benchmarks.py --generate
+
+# Or just re-run against the benchmark instances already committed in benchmarks/:
+python run_benchmarks.py
+
+# Then open the notebook to view the analysis charts:
 jupyter notebook knapsack_project.ipynb
 ```
 
-Run cells in order. Benchmark instances are already provided in `benchmarks/`, so the full ~30-60 min benchmark run is optional — everything can be reproduced from existing data.
+`benchmark_results.csv` is already committed, so the notebook works out of the box without re-running anything.
 
 ## Project structure
 
 ```
-knapsack_project.ipynb     notebook: implementations, benchmarking, analysis
+src/
+  models.py               Item, Problem, Solution
+  generator.py             synthetic instance generator (3 correlation types)
+  parser.py                reading .txt instances, discovering the benchmark suite
+  algorithms/
+    exact.py                 brute force, DP (bottom-up + top-down), branch and bound
+    greedy.py                4 greedy heuristics + fractional relaxation
+    approximation.py         FPTAS + adaptive epsilon
+    metaheuristics.py        genetic algorithm, simulated annealing (+ adaptive variants), randomized
+    __init__.py               registry: which algorithms run, up to which n
+  benchmark.py              runs every algorithm against every discovered instance
+  visualize.py              all plotting functions used in the notebook
+  hyperparameters.py        exploratory hyperparameter-sensitivity helpers (see Known Issues)
+run_benchmarks.py          CLI: (optionally) regenerate instances, run all benchmarks, save CSV
+knapsack_project.ipynb     demo + analysis notebook (imports from src/, no algorithm code)
 benchmarks/
   generated/                instances generated for this study
   large_scale/, low_dimension/   standard reference instances
@@ -65,3 +87,5 @@ Genetic Algorithm, Simulated Annealing, and adaptive variants of both — 85-98%
 ## Known issues
 
 **FPTAS scaling bug (n > 100):** the scaling factor `K = (epsilon * v_max) / n` is too small for larger n, inflating the DP table instead of shrinking it (e.g. n=200 → 40M cells). Root cause identified (should be `K = max(1, (epsilon * v_max) / (2*n))`), documented but intentionally left unfixed to preserve the authenticity of the benchmark results discussed in the report.
+
+**Branch and Bound bound() off-by-one:** `bound()` returns `0` whenever `current_weight >= problem.capacity`, instead of only when it *exceeds* capacity. This incorrectly discards the exact-capacity-full case, which can prune away the true optimum (e.g. items of weight 20 and 30 with capacity 50 — the optimal 20+30 split is pruned, and B&B returns a lower-value solution instead). Found while restructuring the code into `src/algorithms/exact.py`; not fixed here since it would change previously reported results, but worth fixing (`>` instead of `>=`) before trusting Branch and Bound's optimality on new instances.
